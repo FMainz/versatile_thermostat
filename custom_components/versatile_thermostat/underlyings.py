@@ -46,6 +46,8 @@ from .keep_alive import IntervalCaller
 from .vtherm_api import VersatileThermostatAPI
 from .underlying_state_manager import UnderlyingStateManager
 
+resend_delay_sec = 2
+
 _LOGGER = get_vtherm_logger(__name__)
 
 class UnderlyingEntityType(StrEnum):
@@ -122,7 +124,7 @@ class UnderlyingEntity:
         `new_state` may be None when the entity is removed/unavailable.
         Runs the initial state checks when all underlying entities are initialized.
         """
-        _LOGGER.debug("%s --------> Underlying state change received: '%s'", self, new_state)
+        _LOGGER.debug("%s - --------> Underlying state change received: '%s'", self, new_state)
 
         # If not yet initialized and we received a valid initial state, run initial checks
         if not self.is_initialized:
@@ -206,7 +208,7 @@ class UnderlyingEntity:
             self._last_command_sent_datetime = self._thermostat.now
             return response
         except Exception as err:
-            _LOGGER.error("Error calling service %s.%s: %s. The underlying will not change its state.", domain, service, err)
+            _LOGGER.error("%s - Error calling service %s.%s: %s. The underlying will not change its state.", self, domain, service, err)
 
     def clamp_sent_value(self, value) -> float:
         """capping of the value send to the underlying eqt"""
@@ -422,8 +424,8 @@ class UnderlyingSwitch(UnderlyingEntity):
         if state is None or state.state == STATE_UNAVAILABLE:
             if timer.is_ready():
                 _LOGGER.warning(
-                    "Entity %s is not available (state: %s). Will keep trying "
-                    "keep alive calls, but won't log this condition every time.",
+                    "%s - Entity %s is not available (state: %s). Will keep trying " "keep alive calls, but won't log this condition every time.",
+                    self,
                     self._entity_id,
                     state.state if state else "None",
                 )
@@ -431,7 +433,8 @@ class UnderlyingSwitch(UnderlyingEntity):
             if timer.in_progress:
                 timer.reset()
                 _LOGGER.warning(
-                    "Entity %s has recovered (state: %s).",
+                    "%s - Entity %s has recovered (state: %s).",
+                    self,
                     self._entity_id,
                     state.state,
                 )
@@ -573,6 +576,7 @@ class UnderlyingClimate(UnderlyingEntity):
         )
         self._last_sent_temperature: Optional[float] = None
         self._cancel_set_fan_mode_later: Optional[Callable[[], None]] = None
+        self._cancel_set_temperature_later: Optional[Callable[[], None]] = None
         self._min_sync_entity: float = None
         self._max_sync_entity: float = None
         self._step_sync_entity: float = None
@@ -604,7 +608,28 @@ class UnderlyingClimate(UnderlyingEntity):
             data,
         )
 
+        # if restart the climate, then resend the target temperature 2 sec later for lazy SonoffTRVZB
+        if hvac_mode in (VThermHvacMode_HEAT, VThermHvacMode_COOL):
+
+            async def callback_resend_temp(_):
+                await self.set_temperature(self._thermostat.target_temperature, None, None)
+
+            if self._cancel_set_temperature_later:
+                self._cancel_set_temperature_later()
+            self._cancel_set_temperature_later = async_call_later(self._hass, resend_delay_sec, callback_resend_temp)
+
         return True
+
+    @overrides
+    def remove_entity(self):
+        """Remove the entity"""
+        if self._cancel_set_fan_mode_later:
+            self._cancel_set_fan_mode_later()
+            self._cancel_set_fan_mode_later = None
+        if self._cancel_set_temperature_later:
+            self._cancel_set_temperature_later()
+            self._cancel_set_temperature_later = None
+        super().remove_entity()
 
     @property
     def should_device_be_active(self):
@@ -622,6 +647,10 @@ class UnderlyingClimate(UnderlyingEntity):
         if state is None:
             return None
 
+        # Issue 1890 - unavailable/unknown entities should not be counted as active
+        if state.state in [STATE_UNAVAILABLE, STATE_UNKNOWN]:
+            return None
+
         # Issue 1779 - if no hvac_action is available use a fake hvac_action based on temperature
         hvac_action = state.attributes.get("hvac_action", None)
         if not hvac_action:
@@ -629,15 +658,6 @@ class UnderlyingClimate(UnderlyingEntity):
 
         # The device is active if hvac_mode is not OFF/IDLE and hvac_action is not OFF/IDLE. hvac_action could be None because it is not always implemented by all climate entities
         return state.state != HVACMode.OFF and (hvac_action not in [HVACAction.IDLE, HVACAction.OFF])
-
-        # old code - if self.is_initialized:
-        # return self.hvac_mode != VThermHvacMode_OFF and self.hvac_action not in [
-        # HVACAction.IDLE,
-        # HVACAction.OFF,
-        # None,
-        # ]
-        # else:
-        # return None
 
     async def check_initial_state(self):
         """Prevent the underlying to be on but thermostat is off"""
@@ -738,7 +758,7 @@ class UnderlyingClimate(UnderlyingEntity):
             self._cancel_set_fan_mode_later()
             self._cancel_set_fan_mode_later = None
 
-        delay: float = 2.0
+        delay: float = resend_delay_sec
         now = self._thermostat.now
         last_command_sent = self._last_command_sent_datetime
 
