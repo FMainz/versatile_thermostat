@@ -50,7 +50,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         self._current_max_power: float | None = None
         self._power_temp: float | None = None
         self._cancel_calculate_shedding_call = None
-        self._started_vtherm_total_power: float = 0
+        self._started_vtherm_total_power_by_id: dict[str, float] = {}
         # Not used now
         self._last_shedding_date = None
         self._state = False
@@ -76,7 +76,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
             and self._power_temp
         ):
             self._is_configured = True
-            self._started_vtherm_total_power = 0
+            self._started_vtherm_total_power_by_id = {}
         else:
             _LOGGER.info("%s - Power management is not fully configured and will be deactivated", self)
 
@@ -108,7 +108,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         """Handle power changes."""
         write_event_log(_LOGGER, self, f"Receive power sensor state {event.data.get('new_state').state if event.data.get('new_state') else None}")
 
-        self._started_vtherm_total_power = 0
+        self._started_vtherm_total_power_by_id = {}
         await self.refresh_state()
 
     @callback
@@ -295,11 +295,28 @@ class FeatureCentralPowerManager(BaseFeatureManager):
         vtherms.sort(key=cmp_to_key(cmp_temps))
         return vtherms
 
-    def add_started_vtherm_total_power(self, started_power: float):
-        """Add the power into the _started_vtherm_total_power which holds all VTherm started after
-        the last power measurement"""
-        self._started_vtherm_total_power += started_power
-        _LOGGER.debug("%s - started_vtherm_total_power is now %s", self, self._started_vtherm_total_power)
+    def get_started_vtherm_power(self, reservation_key: str) -> float:
+        """Return the reserved started power for a given underlying key."""
+        return self._started_vtherm_total_power_by_id.get(reservation_key, 0.0)
+
+    def set_started_vtherm_power(self, reservation_key: str, started_power: float):
+        """Set the temporary reserved power for a given underlying key.
+
+        This reservation is used between two power sensor measurements to avoid
+        allowing several underlyings to start simultaneously based on the same
+        stale sensor reading.
+        """
+        if started_power > 0:
+            self._started_vtherm_total_power_by_id[reservation_key] = started_power
+        else:
+            self._started_vtherm_total_power_by_id.pop(reservation_key, None)
+
+        _LOGGER.debug(
+            "%s - started_vtherm_total_power is now %s (%s)",
+            self,
+            self.started_vtherm_total_power,
+            self._started_vtherm_total_power_by_id,
+        )
 
     @property
     def is_configured(self) -> bool:
@@ -334,7 +351,7 @@ class FeatureCentralPowerManager(BaseFeatureManager):
     @property
     def started_vtherm_total_power(self) -> float | None:
         """Return the started_vtherm_total_power"""
-        return self._started_vtherm_total_power
+        return sum(self._started_vtherm_total_power_by_id.values())
 
     @property
     def is_detected(self) -> bool:
