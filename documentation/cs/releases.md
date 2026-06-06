@@ -2,78 +2,11 @@
 
 ![New](images/new-icon.png)
 
-## Release 8.6
-> 1. přidán parametr `max_opening_degrees` pro VTherms typu `over_climate_valve` umožňující omezit maximální procento otevření každého ventilu pro řízení průtoku horké vody a optimalizaci spotřeby energie.
-> 2. přidána funkce překalibrace ventilů pro _VTherm_ `over_climate_valve`, která umožňuje vynutit maximální otevření a poté maximální zavření za účelem pokusu o překalibraci TRV. Více informací [zde](documentation/cs/feature-recalibrate-valves.md).
+> * **Vydání 7.1**:
+>   - Přepracování funkce odlehčení zátěže (správa výkonu). Odlehčení zátěže je nyní řízeno centrálně (dříve byl každý _VTherm_ autonomní). To umožňuje mnohem efektivnější správu a prioritizaci odlehčení zátěže na zařízeních, která jsou blízko setpointu. Všimněte si, že musíte mít centralizovanou konfiguraci se zapnutou správou výkonu, aby to fungovalo. Více informací [zde](./feature-power.md).
 
-## Release 8.5
-> 1. přidána detekce poruchy vytápění pro VTherms používající algoritmus TPI. Tato funkce detekuje dva typy anomálií:
->    - **porucha vytápění**: radiátor silně topí (vysoké on_percent), ale teplota nestoupá,
->    - **porucha chlazení**: radiátor netopí (on_percent na 0), ale teplota stále stoupá.
->
-> Tyto anomálie mohou naznačovat otevřené okno, vadný radiátor nebo externí zdroj tepla. Funkce odesílá události, které lze použít ke spuštění automatizací (oznámení, výstrahy atd.). Více informací [zde](documentation/cs/feature-heating-failure-detection.md).
-
-## Release 8.4
-> 1. added auto TPI (experimental). This new feature allows automatically calculating the best coefficients for the TPI algorithm. More information [zde](documentation/cs/feature-autotpi.md)
-> 2. added a temperature synchronization function for a device controlled in `over_climate` mode. Depending on your device's capabilities, _VTherm_ can control an offset calibration entity or directly an external temperature entity. More information [zde](documentation/cs/feature-sync_device_temp.md),
-> 3. added a feature named "timed preset" which aims to select a preset for a certain duration and come back to the previous preset after the expiration of the delay. The new feature is totally described [zde](documentation/cs/feature-timed-preset.md).
-
-## Release 8.3
-1. Addition of a configurable delay before activating the central boiler.
-2. Addition of a trigger for the central boiler when the total activated power exceeds a threshold. To make this feature work you must:
-   - Configure the power threshold that will trigger the boiler. This is a new entity available in the `central configuration` device.
-   - Configure the power values of the VTherms. This can be found on the first configuration page of each VTherm.
-   - Check the `Used by central boiler` box.
-
-Each time a VTherm is activated, its configured power is added to the total and, if the threshold is exceeded, the central boiler will be activated after the delay configured in item 1.
-
-The previous counter for the number of activated devices and its threshold still exist. To disable one of the thresholds (the power threshold or the activated-devices count threshold), set it to zero. As soon as either of the two non-zero thresholds is exceeded, the boiler is activated. Therefore a logical "or" is applied between the two thresholds.
-
-## Release 8.2
-> Added a feature to lock / unlock a VTherm with an optional code. More information [here](documentation/cs/feature-lock.md)
-
-## Release 8.1
-> - For `over_climate` with regulation by direct valve control, two new parameters are added to the existing `minimum_opening_degrees`. The parameters are now the following:
->    - `opening_threshold`: the valve opening value under which the valve should be considered as closed (and then 'max_closing_degree' will apply),
->    - `max_closing_degree`: the closing degree maximum value. The valve will never be closed above this value. Set it to 100 to fully close the valve when no heating is needed,
->    - `minimum_opening_degrees`: the opening degree minimum value for each underlying device when ``opening_threshold` is exceeded, comma separated. Default to 0. Example: 20, 25, 30. When the heating starts, the valve will start opening with this value and will continuously increase as long as more heating is needed.
->
-> ![alt text](images/opening-degree-graph.png)
-> More informations can be found the discussion thread about this here: https://github.com/jmcollin78/versatile_thermostat/issues/1220
-
-
-## Release 8.0
-> Toto je hlavní vydání. Přepisuje významnou část interních mechanismů Versatile Thermostat zavedením několika nových funkcí:
->    1. _požadovaný stav / aktuální stav_: VTherm nyní má 2 stavy. Požadovaný stav je stav požadovaný uživatelem (nebo Plánovačem). Aktuální stav je stav aktuálně aplikovaný na VTherm. Ten závisí na různých funkcích VTherm. Například uživatel může požadovat (požadovaný stav) zapnuté vytápění s předvolbou Komfort, ale protože bylo detekováno otevřené okno, je VTherm ve skutečnosti vypnutý. Tento duální management vždy zachovává požadavek uživatele a aplikuje výsledek různých funkcí na tento požadavek uživatele pro získání aktuálního stavu. To lépe zpracovává případy, kdy více funkcí chce zasahovat do stavu VTherm (např. otevření okna a omezení spotřeby energie). Také zajišťuje návrat k původnímu požadavku uživatele, když již neprobíhá žádná detekce.
->    2. _časové filtrování_: operace časového filtrování byla přepracována. Časové filtrování brání odesílání příliš mnoha příkazů na ovládané zařízení, aby se zabránilo nadměrné spotřebě baterie (např. TRV na baterie), příliš časté změně cílových teplot (tepelné čerpadlo, peleťový kotel, podlahové vytápění...). Nová operace je nyní následující: explicitní požadavky uživatele (nebo Plánovače) jsou vždy okamžitě zohledněny. Nejsou filtrovány. Pouze změny související s vnějšími podmínkami (např. teplota v místnosti) mohou být potenciálně filtrovány. Filtrování spočívá v opětovném odeslání požadovaného příkazu později a ne v ignorování příkazu, jak tomu bylo dříve. Parametr `auto_regulation_dtemp` umožňuje nastavení zpoždění.
->    3. _zlepšení hvac_action_: `hvac_action` odráží aktuální stav aktivace ovládaného zařízení. Pro typ `over_switch` odráží stav aktivace spínače, pro `over_valve` nebo regulaci ventilu je aktivní, když je otevření ventilu větší než minimální otevření ventilu (nebo 0, pokud není nakonfigurováno), pro `over_climate` odráží `hvac_action` podkladového `climate`, pokud je dostupné, nebo simulaci jinak.
->    4. _vlastní atributy_: organizace vlastních atributů dostupných v Nástrojích pro vývojáře / Stavy byla přeorganizována do sekcí v závislosti na typu VTherm a každé aktivované funkci. Více informací [zde](documentation/en/reference.md#custom-attributes).
->    5. _omezení spotřeby energie_: algoritmus omezení spotřeby energie nyní bere v úvahu vypnutí zařízení mezi dvěma měřeními spotřeby energie domácnosti. Předpokládejme, že máte zpětnou vazbu o spotřebě energie každých 5 minut. Pokud se radiátor vypne mezi 2 měřeními, pak zapnutí nového může být autorizováno. Dříve byly mezi 2 měřeními brány v úvahu pouze zapnutí. Jak dříve, další zpětná vazba o spotřebě energie může omezit více nebo méně.
->    6. _auto-start/stop_: auto-start/stop je užitečné pouze pro typ VTherm `over_climate` bez přímého ovládání ventilu. Tato volba byla odstraněna pro ostatní typy VTherm.
->    7. _VTherm UI Card_: všechny tyto úpravy umožnily významný vývoj [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) pro integraci zpráv vysvětlujících aktuální stav (proč má můj VTherm tuto cílovou teplotu?) a zda probíhá časové filtrování - takže aktualizace podkladového stavu byla oddálena.
->    8. _zlepšení logů_: logy byly zlepšeny pro zjednodušení ladění. Logy ve formátu `--------------------> NEW EVENT: VersatileThermostat-Inversed ...` informují o události ovlivňující stav VTherm.
->
-> ⚠️ **Varování**
->
-> Toto hlavní vydání obsahuje změny způsobující nekompatibilitu s předchozí verzí:
-> - `versatile_thermostat_security_event` byl přejmenován na `versatile_thermostat_safety_event`. Pokud vaše automatizace používají tuto událost, musíte je aktualizovat,
-> - vlastní atributy byly přeorganizovány. Musíte aktualizovat své automatizace nebo Jinja šablony, které je používají,
-> - [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card) musí být aktualizována na alespoň V2.0 pro kompatibilitu,
->
-> **Navzdory 342 automatickým testům této integrace a péči věnované tomuto hlavnímu vydání nemohu zaručit, že její instalace nenaruší stavy vašich VTherm. Pro každý VTherm musíte po instalaci zkontrolovat předvolbu, hvac_mode a případně cílovou teplotu VTherm.**
->
-
-* **Release 7.4**:
-- Added thresholds to enable or disable the TPI algorithm when the temperature exceeds the setpoint. This prevents the heater from turning on/off for short periods. Ideal for wood stoves that take a long time to heat up. See [TPI](documentation/en/algorithms.md#the-tpi-algorithm),
-- Added a sleep mode for VTherms of type `over_climate` with regulation by direct valve control. This mode allows you to set the thermostat to off mode but with the valve 100% open. It is useful for long periods without heating if the boiler circulates water from time to time. Note: you must update the VTHerm UI Card to view this new mode. See [VTherm UI Card](documentation/en/additions.md#versatile-thermostat-ui-card).
-(Need translation please)
-* **Verze 7.2**:
-- Nativní podpora zařízení ovládaných prostřednictvím entity `select` (nebo `input_select`) nebo `climate` pro _VTherm_ typu `over_switch`. Tato aktualizace činí vytváření virtuálních spínačů pro integraci Nodon, Heaty, eCosy atd. zastaralým. Více informací [zde](documentation/cs/over-switch.md#přizpůsobení-příkazů).
-- Odkazy na dokumentaci: Verze 7.2 zavádí experimentální odkazy na dokumentaci z konfiguračních stránek. Odkaz je přístupný prostřednictvím ikony [![?](https://img.icons8.com/color/18/help.png)](https://github.com/jmcollin78/versatile_thermostat/blob/main/documentation/cs/over-switch.md#konfigurace). Tato funkce je v současnosti testována na některých konfiguračních stránkách.
-* **Vydání 7.1**:
-  - Přepracování funkce odlehčení zátěže (správa výkonu). Odlehčení zátěže je nyní řízeno centrálně (dříve byl každý _VTherm_ autonomní). To umožňuje mnohem efektivnější správu a prioritizaci odlehčení zátěže na zařízeních, která jsou blízko setpointu. Všimněte si, že musíte mít centralizovanou konfiguraci se zapnutou správou výkonu, aby to fungovalo. Více informací [zde](./feature-power.md).
-* **Vydání 6.8**:
-  - Přidána nová metoda regulace pro Versatile Termostaty typu `over_climate`. Tato metoda, nazývaná 'Přímé ovládání ventilu', umožňuje přímé ovládání ventilu TRV a případně offset pro kalibraci vnitřního teploměru vašeho TRV. Tato nová metoda byla testována se Sonoff TRVZB a rozšířena na další typy TRV, kde lze ventil přímo ovládat prostřednictvím entit `number`. Více informací [zde](over-climate.md#lauto-régulation) a [zde](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne).
+> * **Vydání 6.8**:
+>   - Přidána nová metoda regulace pro Versatile Termostaty typu `over_climate`. Tato metoda, nazývaná 'Přímé ovládání ventilu', umožňuje přímé ovládání ventilu TRV a případně offset pro kalibraci vnitřního teploměru vašeho TRV. Tato nová metoda byla testována se Sonoff TRVZB a rozšířena na další typy TRV, kde lze ventil přímo ovládat prostřednictvím entit `number`. Více informací [zde](over-climate.md#lauto-régulation) a [zde](self-regulation.md#auto-régulation-par-contrôle-direct-de-la-vanne).
 
 ## **Vydání 6.5** :
   - Přidána nová funkce pro automatické zastavení a restart `VTherm over_climate` [585](https://github.com/jmcollin78/versatile_thermostat/issues/585)

@@ -9,13 +9,6 @@
 
 ## Algoritmus TPI
 
-TPI is applicable only for _VTherm_ which does the regulation itself. This kind of _VTherm_ is concerned:
-1. `over_switch`,
-2. `over_valve`,
-3. `over_climate` with direct valve control.
-
-`over_climate` with self-regulation that doesn't control the valve directly don't have any TPI algorithm embedded and thus this chapter is not applicable for them.
-
 ### Konfigurace koeficientů algoritmu TPI
 
 Pokud jste vybrali termostat typu `over_switch`, `over_valve` nebo `over_climate` se samo-regulací v režimu `Přímé ovládání ventilu` a zvolíte možnost "TPI" v menu, dostanete se na tuto stránku:
@@ -23,19 +16,12 @@ Pokud jste vybrali termostat typu `over_switch`, `over_valve` nebo `over_climate
 ![image](images/config-tpi.png)
 
 Musíte zadat:
-
-| Parametr | Popis | Název atributu |
-|----------|-------|----------------|
-| **Interní koeficient** | Koeficient `coef_int` pro algoritmus TPI. | `tpi_coef_int` |
-| **Externí koeficient** | Koeficient `coef_ext` pro algoritmus TPI. | `tpi_coef_ext` |
-| **Doba aktivace** | Minimální doba aktivace v sekundách. | `minimal_activation_delay` |
-| **Doba deaktivace** | Minimální doba deaktivace v sekundách. | `minimal_deactivation_delay` |
-| **Vysoký práh** | Odchylka teploty (°C nebo K), při jejímž překročení bude algoritmus deaktivován. | `tpi_threshold_high` |
-| **Nízký práh** | Odchylka teploty (°C nebo K), při jejímž podkročení bude algoritmus znovu aktivován. | `tpi_threshold_low` |
+1. koeficient `coef_int` pro algoritmus TPI,
+2. koeficient `coef_ext` pro algoritmus TPI.
 
 ### Princip
 
-Algoritmus TPI vypočítá procento Zapnuto vs Vypnuto pro radiátor v každém cyklu, používaje cílovou teplotu, aktuální teplotu místnosti a aktuální venkovní teplotu.
+Algoritmus TPI vypočítá procento Zapnuto vs Vypnuto pro radiátor v každém cyklu, používaje cílovou teplotu, aktuální teplotu místnosti a aktuální venkovní teplotu. Tento algoritmus je použitelný pouze pro Versatile Thermostaty pracující v režimech `over_switch` a `over_valve`.
 
 Procento se vypočítá pomocí tohoto vzorce:
 
@@ -50,7 +36,7 @@ Při úpravě těchto koeficientů mějte na paměti následující:
 3. **Pokud je dosažení cílové teploty příliš pomalé**, zvyšte `coef_int` pro poskytnutí více výkonu ohřívači,
 4. **Pokud je dosažení cílové teploty příliš rychlé a dochází k oscilacím** kolem cíle, snižte `coef_int` pro poskytnutí menšího výkonu radiátoru.
 
-`on_percent` převede na procento (0 až 100%) a přímo ovládá úroveň otevření ventilu.
+V režimu `over_valve` se hodnota `on_percent` převede na procento (0 až 100%) a přímo ovládá úroveň otevření ventilu.
 
 ## Algoritmus samo-regulace (bez ovládání ventilu)
 

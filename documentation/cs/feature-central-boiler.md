@@ -10,15 +10,12 @@
 Můžete ovládat centralizovaný kotel. Pokud je možné spustit nebo zastavit kotel z Home Assistant, Versatile Thermostat jej bude moci přímo ovládat.
 
 ## Princip
-
-<please update translation from English version>
-
 Základní princip je následující:
-1. Přidá se nová entita typu `binary_sensor`, pojmenovaná ve výchozím nastavení `binary_sensor.central_configuration_central_boiler`.
+1. Přidá se nová entita typu `binary_sensor`, pojmenovaná ve výchozím nastavení `binary_sensor.central_boiler`.
 2. V konfiguraci _VTherm_ specifikujete, zda by _VTherm_ měl ovládat kotel. V heterogenní instalaci by některé _VTherm_ měly ovládat kotel a jiné ne. Proto musíte v každé konfiguraci _VTherm_ uvést, zda ovládá kotel.
-3. `binary_sensor.central_configuration_central_boiler` poslouchá změny stavu zařízení _VTherm_ označených jako ovládající kotel.
-4. Když počet zařízení ovládaných _VTherm_ požadujících vytápění (tj. když se jejich `hvac_action` změní na `Heating`) překročí konfigurovatelný práh, `binary_sensor.central_configuration_central_boiler` se zapne `on` a **pokud byla nakonfigurována aktivační služba, tato služba se zavolá**.
-5. Pokud počet zařízení požadujících vytápění klesne pod práh, `binary_sensor.central_configuration_central_boiler` se vypne `off` a **pokud byla nakonfigurována deaktivační služba, tato služba se zavolá**.
+3. `binary_sensor.central_boiler` poslouchá změny stavu zařízení _VTherm_ označených jako ovládající kotel.
+4. Když počet zařízení ovládaných _VTherm_ požadujících vytápění (tj. když se jejich `hvac_action` změní na `Heating`) překročí konfigurovatelný práh, `binary_sensor.central_boiler` se zapne `on` a **pokud byla nakonfigurována aktivační služba, tato služba se zavolá**.
+5. Pokud počet zařízení požadujících vytápění klesne pod práh, `binary_sensor.central_boiler` se vypne `off` a **pokud byla nakonfigurována deaktivační služba, tato služba se zavolá**.
 6. Máte přístup ke dvěma entitám:
    - Entita typu `number`, pojmenovaná ve výchozím nastavení `number.boiler_activation_threshold`, která udává aktivační práh. Tento práh je počet zařízení (radiátorů) požadujících vytápění.
    - Entita typu `sensor`, pojmenovaná ve výchozím nastavení `sensor.nb_device_active_for_boiler`, která zobrazuje počet zařízení požadujících vytápění. Například _VTherm_ se 4 ventily, z nichž 3 požadují vytápění, způsobí, že tento senzor zobrazí 3. Počítají se pouze zařízení z _VTherm_ označených pro ovládání centrálního kotle.
@@ -37,10 +34,6 @@ Pro konfiguraci této funkce potřebujete centralizovanou konfiguraci (viz [Konf
 Na další stránce můžete poskytnout konfiguraci pro akce (např. služby), které se mají volat při zapnutí/vypnutí kotle:
 
 ![Přidat centrální kotel](images/config-central-boiler-2.png)
-
-První parametr určuje zpoždění v sekundách před aktivací kotla. Výchozí hodnota je 0, což znamená, že se kotel aktivuje okamžitě, jakmile je překročen práh. Pokud potřebujete ventilům čas na otevření (například), nastavte kladnou hodnotu v sekundách. Některé ventily pro systémy podlahového vytápění se mohou otevírat několik minut a mohlo by být škodlivé aktivovat čerpadlo kotle před tím, než se ventily zcela otevřou.
-
-Druhý parametr odpovídá **zpoždění keep-alive** v sekundách. Tento parametr umožňuje pravidelně opakovat příkaz aktivace kotla, aby bylo zajištěno, že kotel zůstane zapnutý. Pokud se příkaz na kotel neoprávněně neobjeví nebo se kotel sám vypne, bude stejný příkaz odeslán v pravidelných intervalech. Výchozí hodnota je 0, což znamená, že keep-alive je zakázáno. Pokud chcete tuto funkci aktivovat, nastavte kladnou hodnotu v sekundách (například 60 pro opětovné odeslání příkazu každou minutu). Tento parametr je volitelný a lze jej ponechat na 0, pokud jej nepotřebujete.
 
 Akce (např. služby) se konfigurují podle popisu na stránce:
 1. Obecný formát je `entity_id/service_id[/attribute:value]` (kde `/attribute:value` je volitelné).
@@ -83,7 +76,7 @@ Událost aktivace:
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: true
-  entity_id: binary_sensor.central_configuration_central_boiler
+  entity_id: binary_sensor.central_boiler
   name: Central boiler
   state_attributes: null
 origin: LOCAL
@@ -99,7 +92,7 @@ Událost vypnutí:
 event_type: versatile_thermostat_central_boiler_event
 data:
   central_boiler: false
-  entity_id: binary_sensor.central_configuration_central_boiler
+  entity_id: binary_sensor.central_boiler
   name: Central boiler
   state_attributes: null
 origin: LOCAL

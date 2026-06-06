@@ -18,10 +18,6 @@ jazycích: [Angličtina](README.md) | [Francouzština](README-fr.md) | [Němčin
 
 Tato vlastní komponenta pro Home Assistant je vylepšením a kompletním přepsáním komponenty "Awesome thermostat" (viz [Github](https://github.com/dadge/awesome_thermostat)) s přidanými funkcemi.
 
-# Dokumentace
-
-Celá dokumentace je k dispozici na [Versatile Thermostat Web site](https://www.versatile-thermostat.org/).
-
 # Snímky obrazovky
 
 Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcollin78/versatile-thermostat-ui-card)) :
@@ -31,29 +27,27 @@ Versatile Thermostat UI Card (K dispozici na [Github](https://github.com/jmcolli
 # Co je nového?
 ![Nové](images/new-icon.png)
 
-## Release 10.0
-Zavedení mechanismu pluginů. To umožňuje používat externí integrace jako pluginy pro _VTherm_. Seznam dostupných pluginů je k dispozici na [Versatile Thermostat Web site](https://www.versatile-thermostat.org/cs/plugins).
+## Verze 10.0
+Zavedení mechanismu pluginů. Umožňuje používat externí integrace jako pluginy pro _VTherm_. Seznam dostupných pluginů je na [webu Versatile Thermostat](https://www.versatile-thermostat.org/cs/plugins).
 
-## Release 9.3 - stabilní verze
-> 1. **Detekce zaseknutého ventilu**: Zásadní vylepšení detekce poruchy vytápění. Když je na termostatech typu `over_climate_valve` detekována anomálie, termostat nyní diagnostikuje, zda je problém způsoben zaseknutým ventilem TRV (zaseknutý otevřený nebo zavřený) porovnáním požadovaného stavu se skutečným stavem. Tyto informace - `root_cause` - jsou odeslány vEvents anomálie, což vám umožňuje podniknout příslušná opatření (oznámení, obnovení ventilu atd.). Další informace [zde](documentation/cs/feature-heating-failure-detection.md),
-> 2. **Automatické znovuzamčení po odemčení**: Přidán parametr `auto_relock_sec` do funkce zámku. Pokud je nakonfigurován, termostat se automaticky znovuzamkne po zadaném počtu sekund po odemčení. Tuto funkci můžete zcela deaktivovat nastavením na 0. Ve výchozím nastavení je automatické znovuzamčení nastaveno na 30 sekund pro zvýšení bezpečnosti. Další informace [zde](documentation/cs/feature-lock.md),
-> 3. **Opětovné odeslání příkazu**: Nová funkce pro automatickou detekci a opravu nesrovnalostí mezi požadovaným stavem termostatu a skutečným stavem podřízených zařízení. Pokud příkaz není správně aplikován na zařízení, je znovu odeslán. To zlepšuje spolehlivost systému v nestabilních prostředích nebo s nespolehlivým vybavením. Další informace [zde](documentation/cs/feature-advanced.md),
-> 4. **Obnovení časového přednastavení po restartování**: Nakonfigurované časové přednastavení je nyní správně obnoveno po restartování termostatu nebo Home Assistant. Toto přednastavení continue normálně funguje po restartování. Další informace [zde](documentation/cs/feature-timed-preset.md),
-> 5. **Zvýšená přesnost řízení výkonu**: Prah aktivace kotle (`power_activation_threshold`) nyní přijímá desetinné hodnoty (0,1, 0,5 atd.) pro jemnější kontrolu aktivačního výkonu. To poskytuje větší flexibilitu pro optimalizaci spotřeby energie. Další informace [zde](documentation/cs/feature-power.md),
-> 6. **Zlepšení dostupnosti senzorů**: Lepší podpora pro určení dostupnosti senzoru teploty pomocí metadat `last_updated` Home Assistant, zlepšená detekce ztráty signálu senzoru,
+## Verze 9.3 (stabilní)
+> 1. **Detekce zaseknutého ventilu**: významné vylepšení detekce poruch vytápění. Při anomálii u _VTherm_ typu `over_climate_valve` termostat diagnostikuje, zda je příčinou zaseknutý TRV ventil (zaseknutý otevřený/zavřený), a pošle `root_cause` v události. Více informací [zde](documentation/cs/feature-heating-failure-detection.md),
+> 2. **Automatické opětovné zamčení po odemčení**: přidán parametr `auto_relock_sec` ve funkci zámku. Při nastavení se termostat po odemčení automaticky znovu zamkne po zadaném počtu sekund. Více informací [zde](documentation/cs/feature-lock.md),
+> 3. **Opětovné odeslání příkazu**: nová funkce, která detekuje a opravuje nesoulad mezi požadovaným stavem termostatu a skutečným stavem podřízených zařízení. Pokud se příkaz neprovede správně, odešle se znovu. Více informací [zde](documentation/cs/feature-advanced.md),
+> 4. **Obnovení časovaného presetu po restartu**: časovaný preset se po restartu termostatu nebo Home Assistant obnoví a pokračuje normálně. Více informací [zde](documentation/cs/feature-timed-preset.md),
+> 5. **Přesnější řízení výkonu**: práh aktivace kotle (`power_activation_threshold`) nově přijímá desetinné hodnoty (0.1, 0.5, ...), což umožňuje jemnější řízení spotřeby. Více informací [zde](documentation/cs/feature-power.md),
+> 6. **Zlepšení dostupnosti senzorů**: lepší určování dostupnosti teplotních senzorů přes metadata `last_updated` v Home Assistant.
 
-## Release 9.2
+## Verze 9.2
 > 1. Nový způsob řízení cyklů topení/zastavení pro VTherm `over_switch`. Současný algoritmus má časový drift a první cykly nejsou optimální. To narušuje TPI a zejména auto-TPI. Nový `Cycle Scheduler` řeší tyto potíže. Tato změna je pro vás zcela transparentní,
 > 2. Kolektor záznamů. Vaše žádosti o podporu často selhávají kvůli vaší schopnosti poskytnout záznamy v správném období, zaměřené na termostat s chybou a na správné úrovni záznamů. Jedná se zejména o obtížně reprodukovatelné chyby. Kolektor záznamů má za cíl vyřešit tuto potíž. Sbírá pro vás záznamy na pozadí na nejjemnější úrovni a akce (dříve služba) umožňuje jejich extrakci do souboru. Poté je můžete stáhnout a připojit k vaší žádosti o podporu. Analyzátor záznamů spojený s webovými stránkami – spuštěný ve verzi 9.1 (viz níže) – se přizpůsobuje, aby mohl tyto záznamy zpracovat. Více informací o kolektoru záznamů [zde](documentation/cs/feature-logs-collector.md),
 > 3. Stabilizace verze 9.x. Hlavní verze 9 přinesla mnoho změn, které způsobily některé anomálie. Tato verze přináší poslední opravy týkající se verze 9.
 
-## Release 9.1
+## Verze 9.1
 > 1. Nové logo. Inspirováno prací @Krzysztonek (viz [zde](https://github.com/jmcollin78/versatile_thermostat/pull/1598)), VTherm využívá novou funkci představenou v [HA 206.03](https://developers.home-assistant.io/blog/2026/02/24/brands-proxy-api/) pro změnu svého loga. Celý tým doufá, že se vám bude líbit. Užijte si to!
 > 2. Webová stránka vytvořená @bontiv řeší jeden z hlavních problémů VTherm: dokumentaci. Tato stránka navíc umožňuje analyzovat vaše logy! Poskytněte své logy (v debug režimu) a budete je moci analyzovat, přiblížit konkrétní termostat, zaměřit se na určité období, filtrovat to, co vás zajímá, atd. Objevte tuto první verzi zde: [Versatile Thermostat Web site](https://www.versatile-thermostat.org/). Velké poděkování patří @bontiv za tuto skvělou práci.
-> 3. Oficiální vydání funkce auto-TPI. Tato funkce vypočítává optimální hodnoty koeficientů pro algoritmus [TPI](documentation/fr/algorithms.md#lalgorithme-tpi). Je třeba ocenit neuvěřitelnou práci @KipK a @gael1980 na tomto tématu. Pokud ji chcete používat, určitě si přečtěte dokumentaci.
+> 3. Oficiální vydání funkce auto-TPI. Tato funkce vypočítává optimální hodnoty koeficientů pro algoritmus [TPI](documentation/cs/algorithms.md#algoritmus-tpi). Je třeba ocenit neuvěřitelnou práci @KipK a @gael1980 na tomto tématu. Pokud ji chcete používat, určitě si přečtěte dokumentaci.
 > 4. VTherm se nyní opírá o stav hlášený podřízenými zařízeními v HA. Dokud všechna podřízená zařízení nemají v HA známý stav, VTherm zůstává deaktivovaný.
-
-More informations [here](documentation/cs/feature-central-boiler.md).
 
 # 🍻 Děkuji za piva 🍻
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jmcollin78)
@@ -98,19 +92,17 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 15. [Centralizované řízení všech VTherm](documentation/cs/feature-central-mode.md)
 16. [Řízení ústředního vytápění](documentation/cs/feature-central-boiler.md)
 17. [Pokročilé aspekty, bezpečnostní režim](documentation/cs/feature-advanced.md)
-18. [Samoregulace](documentation/cs/self-regulation.md)
-19. [Lock / Unlock](documentation/en/feature-lock.md)
-20. [Učení Auto TPI](documentation/cs/feature-autotpi.md)
-21. [Technická dokumentace Auto TPI](documentation/cs/feature-autotpi-technical.md)
-22. [Temperature synchronisation](documentation/en/feature-sync_device_temp.md)
-23. [Timed preset](documentation/en/feature-timed-preset.md)
-24. [Příklady ladění](documentation/cs/tuning-examples.md)
-25. [Algoritmy](documentation/cs/algorithms.md)
-26. [Zámek / Odemknutí](documentation/cs/feature-lock.md)
-27. [Referenční dokumentace](documentation/cs/reference.md)
-28. [Řešení problémů](documentation/cs/troubleshooting.md)
-29. [Poznámky k verzím](documentation/cs/releases.md)
-30. [Detekce poruchy vytápění](documentation/cs/feature-heating-failure-detection.md)
+18. [Detekce poruchy vytápění](documentation/cs/feature-heating-failure-detection.md)
+19. [Samoregulace](documentation/cs/self-regulation.md)
+20. [Auto TPI učení](documentation/cs/feature-autotpi.md)
+21. [Algoritmy](documentation/cs/algorithms.md)
+22. [Zamknutí / odemknutí](documentation/cs/feature-lock.md)
+23. [Synchronizace teploty](documentation/cs/feature-sync_device_temp.md)
+24. [Časovaný preset](documentation/cs/feature-timed-preset.md)
+25. [Referenční dokumentace](documentation/cs/reference.md)
+26. [Příklady ladění](documentation/cs/tuning-examples.md)
+27. [Řešení problémů](documentation/cs/troubleshooting.md)
+28. [Poznámky k verzím](documentation/cs/releases.md)
 
 # Některé výsledky
 
@@ -134,7 +126,7 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 
 ![image](documentation/en/images/results-over-climate-2.png)
 
-# Some comments on the integration
+# Některé komentáře k integraci
 |                                             |                                             |                                             |
 | ------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
 | ![testimonial 1](images/testimonials-1.png) | ![testimonial 2](images/testimonials-2.png) | ![testimonial 3](images/testimonials-3.png) |
@@ -142,7 +134,7 @@ Dokumentace je nyní rozdělena do několika stránek pro snadnější čtení a
 
 Užijte si to!
 
-# ⭐ Star history
+# ⭐ Historie hvězdiček
 
 [![Star History Chart](https://api.star-history.com/svg?repos=jmcollin78/versatile_thermostat&type=Date)](https://star-history.com/#jmcollin78/versatile_thermostat&Date)
 

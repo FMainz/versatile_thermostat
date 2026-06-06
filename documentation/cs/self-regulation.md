@@ -5,7 +5,7 @@
     - [Samo-regulace přímým ovládáním ventilu](#samo-regulace-přímým-ovládáním-ventilu)
     - [Jiná samo-regulace](#jiná-samo-regulace)
       - [Samo-regulace v expertním režimu](#samo-regulace-v-expertním-režimu)
-  - [Shrnutí algoritmu auto-regulace](#shrnutí-algoritmu-auto-regulace)
+  - [Shrnutí algoritmu samo-regulace](#shrnutí-algoritmu-samo-regulace)
 
 Máte možnost aktivovat funkci samo-regulace pouze pro _VTherm_ typu `over_climate`.
 
@@ -17,12 +17,11 @@ Obecně existují dva případy:
 
 ### Samo-regulace přímým ovládáním ventilu
 
--- this § is not updated since v 8.0. Please see the English version --
-
 Tento typ samo-regulace, nazývaný `Přímé ovládání ventilu`, vyžaduje:
 1. Entitu typu `climate`, která je zahrnuta v podkladových zařízeních _VTherm_.
 2. Entitu typu `number` pro ovládání míry otevření ventilu _TRV_.
-3. Volitelnou entitu typu `number` pro ovládání uzavření ventilu.
+3. Volitelnou entitu typu `number` pro kalibraci vnitřní teploty podkladového zařízení.
+4. Volitelnou entitu typu `number` pro ovládání uzavření ventilu.
 
 Když je zvolena samo-regulace `Přímé ovládání ventilu` na _VTherm_ `over_climate`, objeví se nová konfigurační stránka s názvem `Konfigurace regulace ventilu`:
 
@@ -34,11 +33,9 @@ To vám umožní konfigurovat entity ovládání ventilu:
 
 Musíte poskytnout:
 1. Tolik entit ovládání otevření ventilu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou povinné.
-2. Tolik entit ovládání míry uzavření ventilu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou volitelné; buď musí být poskytnuty všechny, nebo žádné.
-3. `opening_threshold`: minimální otevření ventilu, pod kterým se ventil považuje za uzavřený, a proto se použije parametr 'max_closing_degree',
-4. `max_closing_degree`: absolutní maximální procento uzavření. Ventil se nikdy nezavře více, než je uvedeno v této hodnotě. Pokud chcete povolit úplné uzavření ventilu, ponechte tento parametr na 100,
-5. `minimum_opening_degrees`: minimální procento otevření, když je `opening_threshold` překročen a VTherm potřebuje topit. Toto pole je přizpůsobitelné pro každý ventil v případě VTherm s více ventily. Zadáváte seznam minimálních otevření oddělených ','. Výchozí hodnota je 0. Příklad: '20, 25, 30'. Když začne topení (tj. požadované otevření je větší než `opening_threshold`), ventil se otevře s hodnotou větší nebo rovnou této a bude se při potřebě pravidelně zvyšovat.
-6. `max_opening_degrees`: maximální procento otevření, kterého může ventil dosáhnout. Toto pole je přizpůsobitelné pro každý ventil v případě VTherm s více ventily. Zadáváte seznam maximálních otevření oddělených ','. Výchozí hodnota je 100 (plné otevření). Příklad: '80, 85, 90'. Ventil se nikdy neotevře nad tuto hodnotu, což vám umožní omezit průtok horké vody a optimalizovat spotřebu energie. Tato hodnota musí být pro každý ventil striktně větší než `minimum_opening_degrees`.
+2. Tolik entit kalibrace teplotního offsetu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou volitelné; buď musí být poskytnuty všechny, nebo žádné. Jejich použití, pokud je dostupné, je silně doporučeno.
+3. Tolik entit ovládání míry uzavření ventilu, kolik je podkladových zařízení, ve stejném pořadí. Tyto parametry jsou volitelné; buď musí být poskytnuty všechny, nebo žádné.
+4. Seznam minimálních hodnot otevření ventilu, když ventil potřebuje být otevřen. Toto pole je seznam celých čísel. Pokud ventil potřebuje být otevřen, otevře se alespoň na tuto hodnotu; jinak bude úplně uzavřen (0). To zajišťuje, že při potřebě vytápění protéká dostatek vody, zatímco udržuje úplné uzavření, když vytápění není potřeba.
 
 Algoritmus pro výpočet míry otevření je založen na _TPI_, který je popsán [zde](algorithms.md). Je to stejný algoritmus používaný pro _VTherm_ `over_switch` a `over_valve`.
 
@@ -47,7 +44,7 @@ Pokud je nakonfigurována entita míry uzavření ventilu, bude nastavena na `10
 > ![Upozornění](images/tips.png) _*Poznámky*_
 > 1. Od verze 7.2.2 je možné použít entitu "closing degree" na Sonoff TRVZB.
 > 2. Atribut `hvac_action` Sonoff TRVZB TRV je nespolehlivý. Pokud se vnitřní teplota TRV příliš odchyluje od teploty místnosti, entita `climate` může indikovat, že _TRV_ netopí, i když je ventil vynuceně otevřen _VTherm_. Tento problém nemá dopad, protože entita `climate` _VTherm_ je opravena a bere v úvahu otevření ventilu pro nastavení svého atributu `hvac_action`. Tento problém je zmírněn, ale ne úplně eliminován konfigurací kalibrace teplotního offsetu.
-> 3. Atribut `valve_open_percent` _VTherm_ nemusí odpovídat hodnotě `opening degree` poslané ventilu. Pokud používáte jeden ze čtyř parametrů `opening_threshold`, `max_closing_degree`, `minimum_opening_degrees` nebo `max_opening_degrees`, provádí se úprava. Atribut `valve_open_percent` představuje surovou hodnotu vypočítanou _VTherm_. Hodnota `opening degree` poslaná ventilu může být odpovídajícím způsobem upravena.
+> 3. Atribut `valve_open_percent` _VTherm_ nemusí odpovídat hodnotě `opening degree` poslané ventilu. Pokud máte nakonfigurovanou minimální hodnotu otevření nebo používáte ovládání uzavření, provádí se úprava. Atribut `valve_open_percent` představuje surovou hodnotu vypočítanou _VTherm_. Hodnota `opening degree` poslaná ventilu může být odpovídajícím způsobem upravena.
 
 ### Jiná samo-regulace
 

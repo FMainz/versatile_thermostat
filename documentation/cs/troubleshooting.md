@@ -170,7 +170,7 @@ Můžete také zkontrolovat atributy VTherm pro data posledních přijatých hod
 Příklad:
 
 ```yaml
-safety_state: true
+security_state: true
 last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"
 last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"
 last_update_datetime: "2023-12-06T18:43:28.351103+01:00"
@@ -179,7 +179,7 @@ safety_delay_min: 60
 ```
 
 Můžeme vidět, že:
-1. VTherm je skutečně v bezpečnostním režimu (`safety_state: true`),
+1. VTherm je skutečně v bezpečnostním režimu (`security_state: true`),
 2. Aktuální čas je 06/12/2023 v 18:43:28 (`last_update_datetime: "2023-12-06T18:43:28.351103+01:00"`),
 3. Čas posledního příjmu teploty místnosti je 06/12/2023 v 18:43:28 (`last_temperature_datetime: "2023-12-06T18:43:28.346010+01:00"`), takže je aktuální,
 4. Čas posledního příjmu vnější teploty je 06/12/2023 v 13:04:35 (`last_ext_temperature_datetime: "2023-12-06T13:04:35.164367+01:00"`). Vnější teplota má zpoždění více než 5 hodin, což spustilo bezpečnostní režim, protože práh je nastaven na 60 minut (`safety_delay_min: 60`).
@@ -196,8 +196,6 @@ Závisí to na příčině problému:
 3. Některé teplotní senzory neposílají měření, pokud se teplota nezměnila. Takže pokud teplota zůstává velmi stabilní po dlouhou dobu, bezpečnostní režim se může spustit. To není velký problém, protože se deaktivuje, jakmile VTherm obdrží novou teplotu. Na některých teploměrech (např. TuYa nebo Zigbee) můžete vynutit maximální zpoždění mezi dvěma měřeními. Maximální zpoždění by mělo být nastaveno na hodnotu nižší než `safety_delay_min`,
 4. Jakmile je teplota znovu přijata, bezpečnostní režim se vypne a předchozí preset, cílová teplota a hodnoty režimu budou obnoveny.
 5. Pokud je vnější teplotní senzor vadný, můžete zakázat spuštění bezpečnostního režimu, protože má minimální dopad na výsledky. Viz [zde](feature-advanced.md#safety-mode).
-6. some Zigbee sensors have an entity named Last Seen. They are often hidden and need to be enabled to be usable. Once enabled, you can configure it in the VTherm main configuration screen. See main configuration screen.
-
 
 ## Použití skupiny osob jako senzoru přítomnosti
 
@@ -224,32 +222,18 @@ template: !include templates.yaml
 ...
 ```
 
-## Aktivace protokolů Versatile Thermostat
+## Povolení logů pro Versatile Thermostat
 
-### Použití log-collector (doporučená metoda)
-
-Chcete-li sbírat a analyzovat protokoly Versatile Thermostat, **důrazně se doporučuje používat integrovanou funkci stažení protokolů** (log-collector). Tato metoda:
-- ✅ Shromažďuje protokoly **nezávisle na úrovni konfigurované v Home Assistant**
-- ✅ Neovlivňuje výkon Home Assistant
-- ✅ Umožňuje filtrování podle období, termostatu a úrovně závažnosti
-- ✅ Poskytuje snadno analyzovatelný soubor ke stažení
-
-Podívejte se na úplnou dokumentaci: [Stažení starších protokolů - Diagnostika a řešení problémů](feature-logs-collector.md)
-
-### Aktivace protokolů v Home Assistant (stará metoda)
-
-Pokud potřebujete pokročilejší režim ladění, můžete aktivovat protokoly na úrovni Home Assistant úpravou souboru `logger.yaml`:
+Někdy budete muset povolit logy pro jemné doladění vaší analýzy. Upravte soubor `logger.yaml` v konfiguraci a nakonfigurujte logy takto:
 
 ```yaml
-logger:
-  default: warning
-  logs:
-    custom_components.versatile_thermostat: debug
+default: xxxx
+logs:
+  custom_components.versatile_thermostat: info
 ```
+Musíte znovu načíst YAML konfiguraci (Developer Tools / YAML / Reload all YAML configuration) nebo restartovat Home Assistant, aby se tato změna projevila.
 
-Chcete-li, aby se tato změna projevila, musíte znovu načíst konfiguraci YAML (Developer Tools / YAML / All Configuration) nebo restartovat Home Assistant.
-
-⚠️ **Upozornění**: V režimu ladění je Versatile Thermostat velmi podrobný a může zpomalit Home Assistant nebo zaneprázdnit váš pevný disk. Tento přístup je doporučen pouze pro pokročilé ladění v krátké době. **Ve všech normálních případech raději používejte log-collector.**
+Pozor, v debug režimu je Versatile Thermostat velmi podrobný a může rychle zpomalit Home Assistant nebo nasytit váš pevný disk. Pokud přepnete do debug režimu pro analýzu anomálií, udělejte to pouze po dobu potřebnou k reprodukci chyby a debug režim okamžitě poté zakažte.
 
 ## VTherm nesleduje změny setpointu provedené přímo na podkladovém zařízení (`over_climate`)
 
