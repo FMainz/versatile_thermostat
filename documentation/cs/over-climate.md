@@ -5,7 +5,6 @@
   - [Konfigurace](#konfigurace)
     - [Podkladové entity](#podkladové-entity)
     - [AC režim](#ac-režim)
-    - [Synchronization of the internal temperature of underlying entities](#synchronization-of-the-internal-temperature-of-underlying-entities)
     - [Samo-regulace](#samo-regulace)
     - [Auto-ventilátor (Auto ventilace)](#auto-ventilátor-auto-ventilace)
     - [Kompenzace vnitřní teploty podkladového vybavení](#kompenzace-vnitřní-teploty-podkladového-vybavení)
@@ -38,9 +37,6 @@ V seznamu "Zařízení k ovládání" byste měli přidat entity `climate`, kter
 
 Můžete vybrat termostat `over_climate` pro ovládání klimatizace (reverzibilní nebo ne) zaškrtnutím políčka "AC režim". Pokud to zařízení umožňuje, budou dostupné režimy 'Vytápění' i 'Chlazení'.
 
-### Synchronization of the internal temperature of underlying entities
-This function allows for much better regulation as it synchronizes the internal thermometer of the underlying `climate` entities with the room temperature measured by _VTherm_. It is described [here](feature-sync_device_temp.md).
-
 ### Samo-regulace
 
 V režimu `over_climate` zařízení používá vlastní regulační algoritmus: zapíná/vypíná a pozastavuje automaticky na základě setpointu přenášeného VTherm prostřednictvím své entity `climate`. Používá svůj vnitřní teploměr a přijatý setpoint.
@@ -60,7 +56,7 @@ Nesprávné nastavení těchto prahů může zabránit správné samo-regulaci, 
 Tento režim, zavedený ve verzi 4.3, nutí použití ventilace, pokud je rozdíl teplot významný. Aktivací ventilace dochází k rychlejší distribuci tepla, což pomáhá rychleji dosáhnout cílové teploty.
 Můžete vybrat, kterou úroveň ventilace aktivovat z následujících možností: Nízká, Střední, Vysoká, Turbo.
 
-Samozřejmě vaše podkladové zařízení musí mít ventilaci a musí být ovladatelná, aby to fungovalo. Pokud vaše zařízení neobsahuje režim Turbo, bude místo toho použit režim Vysoká. Jakmile se rozdíl teplot znovu zmenší, ventilace se přepne do "normálního" režimu, který závisí na vašem zařízení (v pořadí): `Mute`, `Quiet`, `Auto`, `Low`. Bude vybrán první dostupný režim pro vaše zařízení.
+Samozřejmě vaše podkladové zařízení musí mít ventilaci a musí být ovladatelná, aby to fungovalo. Pokud vaše zařízení neobsahuje režim Turbo, bude místo toho použit režim Vysoká. Jakmile se rozdíl teplot znovu zmenší, ventilace se přepne do "normálního" režimu, který závisí na vašem zařízení (v pořadí): `Mute`, `Auto`, `Low`. Bude vybrán první dostupný režim pro vaše zařízení.
 
 ### Kompenzace vnitřní teploty podkladového vybavení
 

@@ -124,8 +124,8 @@ htmlcov
 
 #venv
 .venv
-
 .agent
+.pip_tmp
 
 dev_tests/
 entities.json
